@@ -26,7 +26,7 @@ void *generateTime(void* p) {
 
 		time(&t);
 		pthread_mutex_unlock(&mtx);
-		usleep(50);
+		usleep(50000);
 	}
 	pthread_exit(0);
 }
@@ -39,7 +39,7 @@ void *printTime(void* p) {
 			if (lastTime != 0 && !compareTime()) {
 				tm * tm_local = localtime(&t);
 				tm_local->tm_hour += 1;
-				strftime(buffer, 80, "%H:%M:%S", tm_local);
+				strftime(buffer, 20, "%H:%M:%S", tm_local);
 				cout << buffer << endl;
 				lastTime = t;
 				counter++;
@@ -60,7 +60,7 @@ void *printTime(void* p) {
 		}
 
 		pthread_mutex_unlock(&mtx);
-		usleep(50);
+		usleep(50000);
 	}
 	pthread_exit(0);
 }
