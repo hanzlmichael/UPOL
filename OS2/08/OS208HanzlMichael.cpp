@@ -34,7 +34,6 @@ void *generateTime(void* p) {
 void *printTime(void* p) {
 	for (;;) {
 		pthread_mutex_lock(&mtx);
-
 		if (counter < 5) {
 			if (lastTime != 0 && !compareTime()) {
 				tm * tm_local = localtime(&t);
