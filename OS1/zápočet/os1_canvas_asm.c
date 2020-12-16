@@ -1,26 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct canvas
-{
+struct canvas {
 	unsigned int size;
 	unsigned int height;
 	unsigned int width;
 	unsigned char *canvasArray;
 };
 
-struct canvas *canvas_create(unsigned int width, unsigned int height)
-{
-	
-	_asm
-	{
+struct canvas *canvas_create(unsigned int width, unsigned int height) {	
+	_asm {
 		push 16 // velikost struktury canvas
 		call malloc
 		add esp, 4   // musim rucne navysit registr esp, bez toho error
 		mov ebx, eax // vysledek volane funkce se vraci v eax
-
-		// (height * width * 2) vysledek dostanu v ecx
-
 		mov eax, height
 		mul width
 		mov edx, 2
@@ -39,23 +32,17 @@ struct canvas *canvas_create(unsigned int width, unsigned int height)
 		mov edx, 4
 		div edx
 		inc eax
-		mov dword ptr[ebx], eax // do canvas.size da vysledek (height*width)/4 + 1
-		
+		mov dword ptr[ebx], eax // do canvas.size da vysledek (height*width)/4 + 1		
 	konec:
-
 		mov ecx, height
 		mov dword ptr[ebx + 4], ecx
-
 		mov ecx, width
 		mov dword ptr[ebx + 8], ecx
-
 		mov ecx, dword ptr[ebx] // do ecx si dam hodnotu canvas.size ?? otestovat
 		push ecx
 		call malloc
 		add esp, 4
-		mov dword ptr[ebx + 12], eax
-
-	
+		mov dword ptr[ebx + 12], eax	
 		mov esi, eax // do esi dam odkaz na canvasArray
 		mov ecx, dword ptr[ebx] // do eax dam canvas.size
 		mov al, 0
@@ -63,40 +50,22 @@ struct canvas *canvas_create(unsigned int width, unsigned int height)
 		mov byte ptr[esi], al
 		add esi, 1
 		loop opakuj // vynulovani canvasArray
-
 		mov eax, ebx  // return canvas pomoci registru eax
 	}
 }
 
-void canvas_print(struct canvas *canvas)
-{
+void canvas_print(struct canvas *canvas) {
 	char* newline = "\n";
 	char* plus = "+";
 	char* vertical = "|";
 	char* horizontal = "-";
 	char* empty = ".";
-	//char* num = "%u";
-
-	//struct canvas *c = NULL;
-	_asm
-	{
+	_asm {
 		mov ebx, canvas
 		mov esi, dword ptr [ebx + 12] // pointer na canvasArray
 		mov edx, 0 // index i (vnejsi cyklus)
 		xor ecx, ecx
-
 		jmp outerLoop
-
-		//push [esi - 1] // vyhodi mi hodnotu na v poli
-		//push num
-		//call printf
-		//add esp, 8
-
-		//mov eax, 0
-		//mov al, [esi + 1]
-		//mov al, [esi + 2]
-		//mov al, [esi + 3]
-
 	recalculate:
 		inc edx // i++
 		mov cl, 0
@@ -106,12 +75,10 @@ void canvas_print(struct canvas *canvas)
 		mov esi, dword ptr[ebx + 12] // pointer na canvasArray
 		mov edi, dword ptr[ebx] // edi = canvas->size
 		cmp edx, edi // i, canvas.size
-		je end
-		
+		je end		
 			innerLoop:
 				cmp cl, 8 // index j == 8
-				je recalculate
-				
+				je recalculate				
 				xor eax, eax
 				mov ax, 2 
 				mul [ebx + 8] // canvas->width
@@ -119,8 +86,7 @@ void canvas_print(struct canvas *canvas)
 				rol ecx, 16
 				cmp ax, cx // (canvas->height * canvas->width * 2) == bitCounter
 				rol ecx, 16
-				je end // kdyz rovno tak ukoncim (je vytisknuto vse)
-				
+				je end // kdyz rovno tak ukoncim (je vytisknuto vse)				
 				xor eax, eax
 				mov al, ch //countSymbolsOnRow
 				cmp al, [ebx + 8] // (countSymbolsOnRow == canvas->width)
@@ -159,7 +125,6 @@ void canvas_print(struct canvas *canvas)
 				mov ecx, [esp - 8]
 				mov edx, [esp - 12] // vraceni puvodnich hodnot do registru
 				jmp toContinue
-
 			printVertical:
 				push eax // zalohuju si vsechny registry za zasobnik
 				push ecx // zalohuju si vsechny registry za zasobnik
@@ -170,8 +135,7 @@ void canvas_print(struct canvas *canvas)
 				mov eax, [esp - 4]
 				mov ecx, [esp - 8]
 				mov edx, [esp - 12] // vraceni puvodnich hodnot do registru
-				jmp toContinue
-				
+				jmp toContinue				
 			isFalse:
 				inc cl // j++
 				mov al, [esi + edx]
@@ -188,8 +152,7 @@ void canvas_print(struct canvas *canvas)
 				mov eax, [esp - 4]
 				mov ecx, [esp - 8]
 				mov edx, [esp - 12] // vraceni puvodnich hodnot do registru
-				jmp toContinue
-		
+				jmp toContinue		
 			printDot:
 				push eax // zalohuju si vsechny registry za zasobnik
 				push ecx // zalohuju si vsechny registry za zasobnik
@@ -200,7 +163,6 @@ void canvas_print(struct canvas *canvas)
 				mov eax, [esp - 4]
 				mov ecx, [esp - 8]
 				mov edx, [esp - 12] // vraceni puvodnich hodnot do registru
-
 			toContinue:
 				xor eax, eax
 				mov ax, 2
@@ -211,15 +173,12 @@ void canvas_print(struct canvas *canvas)
 				inc ch // countSymbolsOnRow
 				inc cl
 				jmp innerLoop
-	end:
-		
+	end:		
 	}
 }
 
-void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len)
-{
-	_asm
-	{
+void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len) {
+	_asm {
 		mov eax, x
 		mov edx, len
 		add eax, edx
@@ -231,8 +190,6 @@ void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov len, eax
 		mov x, 0
 		jmp cycleBegin
-
-	// ok
 	secondCondition:
 		mov eax, len
 		cmp eax, 0
@@ -249,8 +206,6 @@ void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		imul eax, -1
 		mov len, eax
 		jmp cycleBegin 
-
-	// kontrola
 	thirdCondition:
 		mov eax, len
 		cmp eax, 0
@@ -262,10 +217,8 @@ void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov eax, [ebx + 8]
 		sub eax, x
 		mov edx, eax 
-
 	cycleBegin:
 		mov ecx, 0
-		
 	round:
 		cmp ecx, len
 		je hlineEnd
@@ -284,8 +237,6 @@ void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mul ebx
 		add eax, edi // = actualByte
 		mov edi, eax // uchovam si hodnotu actualByte pro dalsi vypocet
-
-		// moveBitsOnPosition
 		xor edx, edx
 		mov eax, x
 		mov ebx, 4
@@ -293,7 +244,6 @@ void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov eax, edx
 		mov bl, 2
 		mul bl // vysledek v eax = moveBitsOnPosition
-
 		mov ebx, ecx // zalohuju counter
 		mov ecx, eax // dosadim movebitsonposition
 		mov eax, 64 
@@ -306,29 +256,17 @@ void canvas_hline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		inc x
 		inc ecx
 		jmp round
-
-		//mov dword ptr[ebx], eax // vlozeni eax do ebx , v tomhle pripade [ebx] = canvas->size
-
 	hlineEnd:
 	}
 }
 
-// mov ebx, canvas
-// mov ecx, [ebx + 8] canvas->width
-// [ebx] canvas->size
-// [ebx + 4] canvas->heigth
-
-void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len)
-{
-	_asm
-	{
+void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len) {
+	_asm {
 		xor ecx, ecx
 		mov eax, len 
-		//mov ch, 0 // counter prcessedRow
 		push eax // len [esp - 4]
 		push 0 // [esp - 8] processedRow
 		add esp, 8
-
 		mov cl, 0 // index i cyklu na dolnich 8 bitech
 		cmp len, 0
 		jge vlineSecondCond
@@ -336,7 +274,6 @@ void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov ebx, -1
 		mul ebx // pokud delka 'len' mensi nez 0 tak len *= -1
 		mov len, eax
-
 	vlineSecondCond: // prepocitani delky, jeli souradnice y + delka vetsi nez vyska canvasu
 		mov eax, [esp - 4]
 		add eax, y
@@ -347,7 +284,6 @@ void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov eax, edx
 		sub eax, y
 		mov len, eax 
-
 	vlineRound:
 		xor eax, eax 
 		mov eax, len // z eax pouziju jen spodnich 8 bitu abych mohl srovnat z cl
@@ -362,8 +298,7 @@ void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov edx, 0
 		cmp eax, edx
 		jge conditionBody
-		jmp conditionFailed	
-			
+		jmp conditionFailed			
 	conditionBody:
 		xor edx, edx
 		xor ebx, ebx 
@@ -398,16 +333,13 @@ void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		shr ebx, cl // mask(128) >> moveBitsOnPosition
 		mov ecx, edx // vraceno zpet (processed a index i)
 		mov eax, ebx
-
-		// overit
 		mov esi, canvas
 		mov ebx, [esi + 12] // canvasArray
 		mov edx, [ebx + edi] // edx = canvas->canvasArray[actualByte];
 		or eax, edx // eax = (mask >> moveBitsOnPosition) | canvas->canvasArray[actualByte]
-		mov dword ptr[ebx + edi], eax // neotestovano
-
-		mov eax, [esp - 4] // originalni hodnota len // chyba nedosadilo se hodnota len
-		cmp eax, 0  // length < 0
+		mov dword ptr[ebx + edi], eax 
+		mov eax, [esp - 4] 
+		cmp eax, 0  
 		jge vlineRoundEnd
 		mov ebx, canvas
 		xor edx, edx
@@ -422,7 +354,6 @@ void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov [esp - 8], eax // processedRow -= sizeOfRow; 
 		inc cl
 		jmp vlineRound
-
 	vlineRoundEnd:
 		mov ebx, canvas
 		xor edx, edx
@@ -437,26 +368,20 @@ void canvas_vline(struct canvas *canvas, unsigned int x, unsigned int y, int len
 		mov [esp - 8], eax // processedRow += sizeOfRow;
 		inc cl 
 		jmp vlineRound
-
 	conditionFailed:
 		inc cl
 		jmp vlineRound
-
 	vlineEnd:
 	}
 }
 
-void canvas_free(struct canvas *canvas)
-{
-	_asm
-	{
+void canvas_free(struct canvas *canvas) {
+	_asm {
 		mov ebx, canvas
 		mov esi, [ebx + 12] // canvas->canvasArray
-
 		push esi
 		call free
 		add esp, 4
-
 		mov ebx, canvas
 		push ebx
 		call free
@@ -464,14 +389,13 @@ void canvas_free(struct canvas *canvas)
 	}
 }
 
-int main()
-{
-	struct canvas *c = canvas_create(20, 10);	canvas_hline(c, 3, 2, 13); 
+int main() {
+	struct canvas *c = canvas_create(20, 10);
+	canvas_hline(c, 3, 2, 13); 
 	canvas_hline(c, 14, 5, -11);
 	canvas_vline(c, 4, 1, 6);
 	canvas_vline(c, 14, 6, -6);
 	canvas_vline(c, 9, 5, 20);
 	canvas_print(c);
 	canvas_free(c);
-
 }
