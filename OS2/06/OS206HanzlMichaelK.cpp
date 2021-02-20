@@ -7,9 +7,7 @@
 #define BUFFSIZE 512
 using namespace std;
 
-int main()
-{
-
+int main() {
 	HANDLE h;
 	LPVOID lpvMessage;
 	unsigned char buff[BUFFSIZE];
